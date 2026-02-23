@@ -1,0 +1,8 @@
+# Virtual env and build artifacts
+.venv/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Local state (optional; usually not committed)
+# .clawfox/
