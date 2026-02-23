@@ -11,6 +11,17 @@ python3 -m venv .venv
 .venv/bin/playwright install chromium
 ```
 
+### Optional: add to PATH (.bashrc)
+
+To run `clawfox` from any directory without the full path:
+
+```bash
+# Add to ~/.bashrc (adjust path to your clawfox clone)
+export PATH="/path/to/clawfox/.venv/bin:$PATH"
+```
+
+Then you can run `clawfox go https://example.com` etc. from anywhere.
+
 ## Usage
 
 Use the venv’s `clawfox` (or `python -m clawfox` with the venv active):
