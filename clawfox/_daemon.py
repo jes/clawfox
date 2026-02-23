@@ -96,7 +96,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=as_html)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "show":
@@ -106,7 +106,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=as_html)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "eval":
@@ -117,7 +117,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
 
         if cmd == "screenshot":
             path = _take_screenshot(page)
-            return {"ok": True, "output": f"attach-image: {path}" if path else "(screenshot failed)"}
+            return {"ok": True, "output": path or "(screenshot failed)"}
 
         if cmd == "click":
             selector = kwargs.get("selector", "")
@@ -133,7 +133,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=False)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "select":
@@ -190,7 +190,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=False)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "forward":
@@ -200,7 +200,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=False)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "reload":
@@ -210,7 +210,7 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             out = build_go_output(html, elements, as_html=False)
             path = _take_screenshot(page)
             if path:
-                out = f"{out}\n\nattach-image: {path}"
+                out = f"{out}\n\nScreenshot: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "stop":
