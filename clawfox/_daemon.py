@@ -70,6 +70,19 @@ def _screenshot_cleanup():
         pass
 
 
+def _take_screenshot(page) -> str | None:
+    """Take a screenshot, run cleanup, return path or None on failure."""
+    try:
+        os.makedirs(SCREENSHOT_DIR, mode=0o700, exist_ok=True)
+        _screenshot_cleanup()
+        name = f"screenshot_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}.png"
+        path = os.path.join(SCREENSHOT_DIR, name)
+        page.screenshot(path=path)
+        return path
+    except Exception:
+        return None
+
+
 def _run_cmd(page, cmd: str, **kwargs) -> dict:
     """Execute one command; returns {ok: bool, output?: str, error?: str}."""
     try:
@@ -81,6 +94,9 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
             out = build_go_output(html, elements, as_html=as_html)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "show":
@@ -88,6 +104,9 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
             out = build_go_output(html, elements, as_html=as_html)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "eval":
@@ -97,12 +116,8 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             return {"ok": True, "output": json.dumps(result, default=str)}
 
         if cmd == "screenshot":
-            os.makedirs(SCREENSHOT_DIR, mode=0o700, exist_ok=True)
-            _screenshot_cleanup()
-            name = f"screenshot_{datetime.now().strftime('%Y-%m-%dT%H-%M-%S')}.png"
-            path = os.path.join(SCREENSHOT_DIR, name)
-            page.screenshot(path=path)
-            return {"ok": True, "output": path}
+            path = _take_screenshot(page)
+            return {"ok": True, "output": f"attach-image: {path}" if path else "(screenshot failed)"}
 
         if cmd == "click":
             selector = kwargs.get("selector", "")
@@ -116,6 +131,9 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
             out = build_go_output(html, elements, as_html=False)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
             return {"ok": True, "output": out}
 
         if cmd == "select":
@@ -169,19 +187,31 @@ def _run_cmd(page, cmd: str, **kwargs) -> dict:
             page.go_back(wait_until="domcontentloaded")
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
-            return {"ok": True, "output": build_go_output(html, elements, as_html=False)}
+            out = build_go_output(html, elements, as_html=False)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
+            return {"ok": True, "output": out}
 
         if cmd == "forward":
             page.go_forward(wait_until="domcontentloaded")
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
-            return {"ok": True, "output": build_go_output(html, elements, as_html=False)}
+            out = build_go_output(html, elements, as_html=False)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
+            return {"ok": True, "output": out}
 
         if cmd == "reload":
             page.reload(wait_until="domcontentloaded")
             html = page.content()
             elements = page.evaluate(INTERACTIVE_ELEMENTS_JS)
-            return {"ok": True, "output": build_go_output(html, elements, as_html=False)}
+            out = build_go_output(html, elements, as_html=False)
+            path = _take_screenshot(page)
+            if path:
+                out = f"{out}\n\nattach-image: {path}"
+            return {"ok": True, "output": out}
 
         if cmd == "stop":
             return {"ok": True, "output": "stopping", "stop": True}
