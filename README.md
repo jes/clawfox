@@ -24,21 +24,20 @@ Then you can run `clawfox go https://example.com` etc. from anywhere.
 
 ## Usage
 
-Use the venv’s `clawfox` (or `python -m clawfox` with the venv active):
+Run `clawfox` (after adding the venv to PATH as above, or use `path/to/clawfox/.venv/bin/clawfox` or `python -m clawfox` with the venv active):
 
 ```bash
-# Activate venv or use full path
-clawfox/.venv/bin/clawfox go https://example.com
-clawfox/.venv/bin/clawfox show --html
-clawfox/.venv/bin/clawfox eval "document.title"
-clawfox/.venv/bin/clawfox screenshot
-clawfox/.venv/bin/clawfox click "role=button[name=\"Submit\"]"
-clawfox/.venv/bin/clawfox select "input[name=email]"
-clawfox/.venv/bin/clawfox fill "input[name=email]" "user@example.com"
-clawfox/.venv/bin/clawfox type "input[name=password]" "secret"
-clawfox/.venv/bin/clawfox wait "role=button[name='OK']"
-clawfox/.venv/bin/clawfox url
-clawfox/.venv/bin/clawfox stop
+clawfox go https://example.com
+clawfox show --html
+clawfox eval "document.title"
+clawfox screenshot
+clawfox click "role=button[name=\"Submit\"]"
+clawfox select "input[name=email]"
+clawfox fill "input[name=email]" "user@example.com"
+clawfox type "input[name=password]" "secret"
+clawfox wait "role=button[name='OK']"
+clawfox url
+clawfox stop
 ```
 
 Selectors are [Playwright selectors](https://playwright.dev/python/docs/selectors) (e.g. `text=Submit`, `role=button[name="Save"]`, `#id`, CSS).
