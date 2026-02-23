@@ -1,6 +1,6 @@
 # Clawfox
 
-CLI headless browser driven by Playwright. Commands start a long-lived daemon if needed; the daemon keeps one browser page and serves commands over a Unix socket.
+CLI headless browser driven by Playwright. Commands start a long-lived daemon if needed; the daemon keeps one browser page and serves commands over a Unix socket. Despite the name, it runs **headless Chromium** (Chrome), not Firefox.
 
 ## Setup
 
