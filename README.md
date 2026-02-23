@@ -38,13 +38,25 @@ clawfox type "input[name=password]" "secret"
 clawfox wait "role=button[name='OK']"
 clawfox url
 clawfox stop
+clawfox tabs                    # list all tabs (URL + title)
+clawfox focus_tab admin.gandi.net   # switch to tab whose URL contains this
 ```
+
+**Headful (visible window)** — log in manually, then use the same session from the CLI:
+
+```bash
+clawfox stop   # if a daemon is already running
+clawfox --headful go https://example.com
+```
+
+Put `--headful` before the subcommand. The browser uses a persistent profile (`~/.clawfox/browser_profile/`), so cookies and logins survive daemon restarts.
 
 Selectors are [Playwright selectors](https://playwright.dev/python/docs/selectors) (e.g. `text=Submit`, `role=button[name="Save"]`, `#id`, CSS).
 
 ## Paths
 
 - Socket/pid: `~/.clawfox/run/` (or `$CLAWFOX_HOME/run/`)
+- Browser profile: `~/.clawfox/browser_profile/` — persistent Chromium profile; cookies and logins survive daemon restarts.
 - Screenshots: `~/.clawfox/screenshots/` (timestamped filenames; daemon deletes files older than 1 day when taking a new screenshot)
 
 ## Design

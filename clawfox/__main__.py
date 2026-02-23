@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 from . import _client
@@ -39,6 +40,11 @@ def main():
         "the daemon starts automatically on first use. All commands use one shared page.",
         epilog=HELP_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--headful",
+        action="store_true",
+        help="Run browser with a visible window (so you can log in). Use before first command, or run 'clawfox stop' then retry with --headful.",
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -174,6 +180,17 @@ def main():
         p.description = "Tell the daemon to shut down. The next clawfox command will start a fresh daemon."
         return p
 
+    def add_tabs():
+        p = sub.add_parser("tabs", help="List all browser tabs (URL and title)")
+        p.description = "List every tab in the browser with its URL and title. Use with focus_tab when you have multiple tabs."
+        return p
+
+    def add_focus_tab():
+        p = sub.add_parser("focus_tab", help="Switch to a tab whose URL contains the given string")
+        p.add_argument("url_contains", help="Substring to match in the tab URL (e.g. admin.gandi.net)")
+        p.description = "Find a tab whose URL contains the given string, bring it to front, and use it for future commands."
+        return p
+
     add_go()
     add_show()
     add_eval()
@@ -189,8 +206,13 @@ def main():
     add_reload()
     add_daemon()
     add_stop()
+    add_tabs()
+    add_focus_tab()
 
     args = parser.parse_args()
+
+    if getattr(args, "headful", False):
+        os.environ["CLAWFOX_HEADFUL"] = "1"
 
     if args.cmd == "daemon":
         _daemon.run_daemon()
@@ -211,6 +233,8 @@ def main():
         kwargs["timeout_ms"] = getattr(args, "timeout", 10) * 1000
         if args.cmd in ("type", "fill"):
             kwargs["text"] = " ".join(args.text) if isinstance(args.text, list) else args.text
+    elif args.cmd == "focus_tab":
+        kwargs["url_contains"] = getattr(args, "url_contains", "")
 
     try:
         out = _client.send_command(args.cmd, **kwargs)

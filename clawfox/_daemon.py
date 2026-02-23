@@ -14,6 +14,7 @@ from playwright.sync_api import sync_playwright
 
 from ._content import INTERACTIVE_ELEMENTS_JS, build_go_output
 from ._paths import (
+    BROWSER_PROFILE_DIR,
     DEFAULT_GO_TIMEOUT_MS,
     PIDFILE_PATH,
     RUN_DIR,
@@ -83,9 +84,26 @@ def _take_screenshot(page) -> str | None:
         return None
 
 
-def _run_cmd(page, cmd: str, **kwargs) -> dict:
-    """Execute one command; returns {ok: bool, output?: str, error?: str}."""
+def _run_cmd(context, current_page_ref, cmd: str, **kwargs) -> dict:
+    """Execute one command; returns {ok: bool, output?: str, error?: str}. current_page_ref is [page] so we can switch tabs."""
+    page = current_page_ref[0]
     try:
+        if cmd == "tabs":
+            pages = context.pages
+            out = json.dumps([{"url": p.url, "title": p.title()} for p in pages], indent=2)
+            return {"ok": True, "output": out}
+
+        if cmd == "focus_tab":
+            substring = (kwargs.get("url_contains") or kwargs.get("substring") or "").strip()
+            if not substring:
+                return {"ok": False, "error": "focus_tab requires url_contains (or substring)"}
+            for p in context.pages:
+                if substring in p.url:
+                    p.bring_to_front()
+                    current_page_ref[0] = p
+                    return {"ok": True, "output": p.url}
+            return {"ok": False, "error": f"no tab URL contains {substring!r}"}
+
         if cmd == "go":
             url = kwargs.get("url", "")
             timeout = int(kwargs.get("timeout_ms", DEFAULT_GO_TIMEOUT_MS))
@@ -239,13 +257,21 @@ def run_daemon():
             pass
     os.makedirs(RUN_DIR, mode=0o700, exist_ok=True)
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sock.bind(SOCKET_PATH)
+    try:
+        sock.bind(SOCKET_PATH)
+    except OSError as e:
+        _delete_pid()
+        sys.exit(f"clawfox daemon: could not bind socket (another daemon may be running): {e}")
     sock.listen(1)
 
+    headful = os.environ.get("CLAWFOX_HEADFUL", "").strip().lower() in ("1", "true", "yes")
+    # Build UA/headers from default version (persistent context has no browser until after launch)
+    _fake_browser = type("_FakeBrowser", (), {"version": "131.0.0.0"})()
+    user_agent, extra_headers, chrome_major = _chrome_version_headers(_fake_browser)
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        user_agent, extra_headers, chrome_major = _chrome_version_headers(browser)
-        context = browser.new_context(
+        context = p.chromium.launch_persistent_context(
+            BROWSER_PROFILE_DIR,
+            headless=not headful,
             user_agent=user_agent,
             extra_http_headers=extra_headers,
         )
@@ -271,7 +297,12 @@ def run_daemon():
             )
         except Exception:
             pass
-        page = context.new_page()
+        # Use first existing page or create one (persistent context can have existing pages from last run)
+        if context.pages:
+            first_page = context.pages[0]
+        else:
+            first_page = context.new_page()
+        current_page_ref = [first_page]  # mutable so focus_tab can switch which tab we drive
 
         try:
             while not stop_requested[0]:
@@ -293,7 +324,7 @@ def run_daemon():
                     req = json.loads(line)
                     cmd = req.get("cmd", "")
                     args = req.get("args", req)
-                    result = _run_cmd(page, cmd, **args)
+                    result = _run_cmd(context, current_page_ref, cmd, **args)
                     if result.get("stop"):
                         stop_requested[0] = True
                     conn.send((json.dumps(result) + "\n").encode("utf-8"))
@@ -309,7 +340,7 @@ def run_daemon():
                         pass
 
         finally:
-            browser.close()
+            context.close()
 
     try:
         sock.close()

@@ -6,5 +6,7 @@ RUN_DIR = os.path.join(_BASE, "run")
 SOCKET_PATH = os.path.join(RUN_DIR, "socket")
 PIDFILE_PATH = os.path.join(RUN_DIR, "daemon.pid")
 SCREENSHOT_DIR = os.path.join(_BASE, "screenshots")
+# Persistent browser profile so cookies/session survive daemon restarts
+BROWSER_PROFILE_DIR = os.path.join(_BASE, "browser_profile")
 DEFAULT_GO_TIMEOUT_MS = 30_000
 SCREENSHOT_MAX_AGE_SECONDS = 24 * 3600  # 1 day
